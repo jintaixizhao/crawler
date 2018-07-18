@@ -1,16 +1,17 @@
 const http = require('http') //http模块
 const fs = require("fs") //fs模块
 const cheerio = require('cheerio') //cheerio模块
+const path = require('path') //path模块
 const chapterUrl = `http://www.jinyongwang.com/tian/` //目标页面的url
 const pageUrlPre = `http://www.jinyongwang.com`
-const dist = `./dist/beginner/` //保存路径
+const dist = path.resolve(__dirname, `../dist/beginner/`) //保存路径
 
 //异步事件，采用async/await来处理
 async function getArticle() {
-    const chapters = await getPage(chapterUrl,getChapters)
-    for(let i=0,len=chapters.length;i<len;i++){
+    const chapters = await getPage(chapterUrl, getChapters)
+    for (let i = 0, len = chapters.length; i < len; i++) {
         const content = await getPage(`${pageUrlPre}${chapters[i]}`, getContent)
-         saveFile(content)
+        await saveFile(content)
     }
 }
 
@@ -32,15 +33,15 @@ const getPage = (url, callback) => new Promise(resolve => {
     });
 })
 
-const getChapters = (html)=>{
-   if (html) {
+const getChapters = (html) => {
+    if (html) {
         const $ = cheerio.load(html);
         const anchors = $(".mlist a")
         const lists = Array.prototype.slice.call(anchors).map((a) => $(a).attr("href"))
         return lists
     } else {
         console.log('无数据传入！');
-    } 
+    }
 }
 
 //页面结构不同，采用的提取方式也不同。爬虫程序最灵活的部分
@@ -65,7 +66,7 @@ const saveFile = (data) => {
     if (!fs.existsSync(dist)) {
         fs.mkdirSync(dist);
     }
-    fs.writeFile(`${dist}${data.title}.html`, data.text, (err) => {
+    fs.writeFile(`${dist}/${data.title}.html`, data.text, (err) => {
         if (err) throw err;
         console.log('文件已成功保存!');
     });

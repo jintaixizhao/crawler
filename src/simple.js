@@ -1,8 +1,9 @@
 const http = require('http') //http模块
 const fs = require("fs") //fs模块
 const cheerio = require('cheerio') //cheerio模块
+const path = require('path') //path模块
 const url = `http://www.jinyongwang.com/tian/686.html` //目标页面的url
-const dist = `./dist/simple/` //保存路径
+const dist = path.resolve(__dirname, `../dist/simple/`) //保存路径
 
 //异步事件，采用async/await来处理
 async function getArticle() {
@@ -52,7 +53,7 @@ const saveFile = (data) => {
     if (!fs.existsSync(dist)) {
         fs.mkdirSync(dist);
     }
-    fs.writeFile(`${dist}${data.title}.html`, data.text, (err) => {
+    fs.writeFile(`${dist}/${data.title}.html`, data.text, (err) => {
         if (err) throw err;
         console.log('文件已成功保存!');
     });

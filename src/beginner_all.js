@@ -1,18 +1,19 @@
 const http = require('http') //http模块
 const fs = require("fs") //fs模块
 const cheerio = require('cheerio') //cheerio模块
+const path = require('path') //path模块
 const bookUrl = `http://www.jinyongwang.com/book/` //目标页面的url
 const pageUrlPre = `http://www.jinyongwang.com`
-const dist = `./dist/beginner_all/` //保存路径
+const dist = path.resolve(__dirname, `../dist/beginner_all/`) //保存路径
 
 //异步事件，采用async/await来处理
 async function getArticle() {
-    const books = await getPage(bookUrl,getBooks)
-    for(let j=0,l=books.length;j<l;j++){
-        const chapters = await getPage(`${pageUrlPre}${books[j][0]}`,getChapters)
-        for(let i=0,len=chapters.length;i<len;i++){
+    const books = await getPage(bookUrl, getBooks)
+    for (let j = 0, l = books.length; j < l; j++) {
+        const chapters = await getPage(`${pageUrlPre}${books[j][0]}`, getChapters)
+        for (let i = 0, len = chapters.length; i < len; i++) {
             const content = await getPage(`${pageUrlPre}${chapters[i]}`, getContent)
-            await saveFile(content,books[j][1])
+            await saveFile(content, books[j][1])
         }
     }
 }
@@ -35,27 +36,26 @@ const getPage = (url, callback) => new Promise(resolve => {
     });
 })
 
-const getBooks= (html)=>{
-   if (html) {
+const getBooks = (html) => {
+    if (html) {
         const $ = cheerio.load(html);
         const anchors = $(".list").eq(1).find(".title a")
-        const lists = Array.prototype.slice.call(anchors).map((a) => [$(a).attr("href"),$(a).text().slice(0,-2)])
-        console.log(lists)
+        const lists = Array.prototype.slice.call(anchors).map((a) => [$(a).attr("href"), $(a).text().slice(0, -2)])
         return lists
     } else {
         console.log('无数据传入！');
-    } 
+    }
 }
 
-const getChapters = (html)=>{
-   if (html) {
+const getChapters = (html) => {
+    if (html) {
         const $ = cheerio.load(html);
         const anchors = $(".mlist a")
         const lists = Array.prototype.slice.call(anchors).map((a) => $(a).attr("href"))
         return lists
     } else {
         console.log('无数据传入！');
-    } 
+    }
 }
 
 //页面结构不同，采用的提取方式也不同。爬虫程序最灵活的部分
@@ -72,12 +72,15 @@ const getContent = (html) => {
 }
 
 //保存文件
-const saveFile = (data,name) => {
+const saveFile = (data, name) => {
     if (!data.title) {
         return false
     }
-    const bookDist = `${dist}${name}/`
+    const bookDist = `${dist}/${name}/`
     //如果不存在保存路径，则立即新建
+    if (!fs.existsSync(dist)) {
+        fs.mkdirSync(dist);
+    }
     if (!fs.existsSync(bookDist)) {
         fs.mkdirSync(bookDist);
     }
